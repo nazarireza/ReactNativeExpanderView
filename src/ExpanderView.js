@@ -15,11 +15,10 @@ import { mix, useValues, timing, useClocks } from "react-native-redash";
 /**
  * @typedef {object} ExpanderViewProps
  * @property {() => React.Node} renderHeader
- * @property {() => React.Node} renderContent
+ * @property {React.Node} children
  * @property {boolean} expanded default value is **false**
  * @property {number} duration _in milliseconds_, default value is **400**
- * @property {number} maxContentHeight default value is **content measured height**
- * @property {(expanded: boolean) => void} onAnimationEnd
+ * @property {() => void} onAnimationEnd
  */
 
 /**
@@ -27,10 +26,9 @@ import { mix, useValues, timing, useClocks } from "react-native-redash";
  */
 const ExpanderView = ({
   renderHeader,
-  renderContent,
+  children,
   expanded = false,
   duration = 200,
-  maxContentHeight = 1000,
   onAnimationEnd = () => {},
 }) => {
   const [progressClock] = useClocks(1, []);
@@ -38,11 +36,15 @@ const ExpanderView = ({
   const { width } = useWindowDimensions();
   const contentContainer = useRef(null);
   const contentContainerHeight = useRef(-1);
+  const layoutMeasureTimeout = useRef(null);
 
   useLayoutEffect(() => {
-    contentContainer.current.measure((fx, fy, width, height) => {
-      contentContainerHeight.current = height;
-    });
+    clearTimeout(layoutMeasureTimeout.current);
+    layoutMeasureTimeout.current = setTimeout(() => {
+      contentContainer.current.measure((fx, fy, width, height) => {
+        contentContainerHeight.current = height;
+      });
+    }, 500);
   }, [width]);
   useCode(() => {
     const isFirstTime = contentContainerHeight.current < 0;
@@ -62,17 +64,13 @@ const ExpanderView = ({
     ]);
   }, [expanded]);
 
-  const height = mix(
-    progress,
-    0,
-    Math.min(contentContainerHeight.current, maxContentHeight)
-  );
+  const height = mix(progress, 0, contentContainerHeight.current);
 
   return (
     <Animated.View style={[styles.container]}>
       {renderHeader()}
       <Animated.View style={[styles.contentContainer, { height }]}>
-        <View ref={contentContainer}>{renderContent()}</View>
+        <View ref={contentContainer}>{children}</View>
       </Animated.View>
     </Animated.View>
   );

@@ -62,16 +62,20 @@ export default () => {
     >
       <ExpanderView
         renderHeader={() => renderHeader(1)}
-        {...{ expanded: expanded1, renderContent }}
+        {...{ expanded: expanded1 }}
         onAnimationEnd={() => console.log("Animation End")}
-      />
+      >
+        {renderContent()}
+      </ExpanderView>
       <View style={{ marginVertical: 20, alignSelf: "center" }}>
         <Button title="Button 1" />
       </View>
       <ExpanderView
         renderHeader={() => renderHeader(2)}
         {...{ expanded: expanded2, renderContent }}
-      />
+      >
+        {renderContent()}
+      </ExpanderView>
     </View>
   );
 };
